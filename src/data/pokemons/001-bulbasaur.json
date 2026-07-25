@@ -1,0 +1,31 @@
+{
+  "id": "001-bulbasaur",
+  "name": "Bulbasaur",
+  "image": "/images/pokemon/001-bulbasaur.svg",
+  "expansion": "Starter Set",
+  "type": "grass",
+  "weakness": "fire",
+  "hp": 120,
+  "diceCount": 3,
+  "attacks": [
+    {
+      "id": "001-vine-whip",
+      "name": "Vine Whip",
+      "damage": 40,
+      "description": "Strikes the opponent with vines grown on its body.",
+      "energyCost": { "grass": 2 },
+      "characterDieOutcomes": [
+        { "poses": ["stand"], "damageBonus": 20, "effectText": "Deals 20 extra damage." },
+        { "poses": ["lieLeft", "lieRight"], "damageBonus": 0 }
+      ]
+    },
+    {
+      "id": "001-solar-power",
+      "name": "Solar Power",
+      "damage": 60,
+      "description": "Gathers sunlight to empower a devastating strike.",
+      "energyCost": { "grass": 2, "colorless": 1 },
+      "specialEffect": "If this attack knocks out the opponent, heal 20 HP."
+    }
+  ]
+}

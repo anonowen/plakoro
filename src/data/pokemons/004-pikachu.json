@@ -1,0 +1,30 @@
+{
+  "id": "004-pikachu",
+  "name": "Pikachu",
+  "image": "/images/pokemon/004-pikachu.svg",
+  "expansion": "Starter Set",
+  "type": "electric",
+  "weakness": "fighting",
+  "hp": 120,
+  "diceCount": 3,
+  "attacks": [
+    {
+      "id": "004-10-man-volt",
+      "name": "10-Man Volt Tackle",
+      "damage": 40,
+      "description": "Charges the opponent with an electrified tackle.",
+      "energyCost": { "electric": 3 },
+      "specialEffect": "This Pokémon also takes 30 damage.",
+      "characterDieOutcomes": [
+        { "poses": ["stand"], "damageBonus": 30, "effectText": "Deals 30 extra damage." }
+      ]
+    },
+    {
+      "id": "004-thunder-shock",
+      "name": "Thunder Shock",
+      "damage": 20,
+      "description": "A jolt of electricity crashes down on the opponent.",
+      "energyCost": { "electric": 1 }
+    }
+  ]
+}

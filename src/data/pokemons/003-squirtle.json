@@ -1,0 +1,27 @@
+{
+  "id": "003-squirtle",
+  "name": "Squirtle",
+  "image": "/images/pokemon/003-squirtle.svg",
+  "expansion": "Starter Set",
+  "type": "water",
+  "weakness": "grass",
+  "hp": 120,
+  "diceCount": 3,
+  "attacks": [
+    {
+      "id": "003-water-gun",
+      "name": "Water Gun",
+      "damage": 30,
+      "description": "Sprays water at the opponent with force.",
+      "energyCost": { "water": 2 }
+    },
+    {
+      "id": "003-shell-guard",
+      "name": "Shell Guard",
+      "damage": 20,
+      "description": "Retreats into its shell before striking back.",
+      "energyCost": { "water": 1, "colorless": 1 },
+      "specialEffect": "Reduces the next attack this Pokémon receives by 20."
+    }
+  ]
+}

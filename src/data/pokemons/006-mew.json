@@ -1,0 +1,27 @@
+{
+  "id": "006-mew",
+  "name": "Mew",
+  "image": "/images/pokemon/006-mew.svg",
+  "expansion": "Starter Set",
+  "type": "psychic",
+  "weakness": "dark",
+  "hp": 120,
+  "diceCount": 3,
+  "attacks": [
+    {
+      "id": "006-mimic",
+      "name": "Mimic",
+      "damage": 0,
+      "description": "Copies the opponent's last used attack, dealing the same damage regardless of type.",
+      "energyCost": { "psychic": 1 },
+      "specialEffect": "Deals damage equal to the opponent's last used attack."
+    },
+    {
+      "id": "006-psy-beam",
+      "name": "Psybeam",
+      "damage": 50,
+      "description": "Fires a peculiar beam that may confuse the opponent.",
+      "energyCost": { "psychic": 2, "colorless": 1 }
+    }
+  ]
+}

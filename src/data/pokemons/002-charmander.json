@@ -1,0 +1,29 @@
+{
+  "id": "002-charmander",
+  "name": "Charmander",
+  "image": "/images/pokemon/002-charmander.svg",
+  "expansion": "Starter Set",
+  "type": "fire",
+  "weakness": "water",
+  "hp": 120,
+  "diceCount": 3,
+  "attacks": [
+    {
+      "id": "002-ember",
+      "name": "Ember",
+      "damage": 30,
+      "description": "Attacks with a small flame.",
+      "energyCost": { "fire": 1 },
+      "characterDieOutcomes": [
+        { "poses": ["stand"], "damageBonus": 10, "effectText": "Deals 10 extra damage." }
+      ]
+    },
+    {
+      "id": "002-flame-burst",
+      "name": "Flame Burst",
+      "damage": 70,
+      "description": "Releases a burst of intense flame at the opponent.",
+      "energyCost": { "fire": 2, "colorless": 1 }
+    }
+  ]
+}

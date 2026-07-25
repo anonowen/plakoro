@@ -1,0 +1,12 @@
+[
+  { "id": "fire", "name": "Fire", "icon": "🔥", "color": "#EF4444", "socketGroup": "A" },
+  { "id": "water", "name": "Water", "icon": "💧", "color": "#3B82F6", "socketGroup": "A" },
+  { "id": "grass", "name": "Grass", "icon": "🌿", "color": "#22C55E", "socketGroup": "A" },
+  { "id": "steel", "name": "Steel", "icon": "▽", "color": "#94A3B8", "socketGroup": "A" },
+  { "id": "electric", "name": "Electric", "icon": "⚡", "color": "#EAB308", "socketGroup": "A" },
+  { "id": "psychic", "name": "Psychic", "icon": "👁️", "color": "#EC4899", "socketGroup": "B" },
+  { "id": "fighting", "name": "Fighting", "icon": "👊", "color": "#F97316", "socketGroup": "B" },
+  { "id": "dark", "name": "Dark", "icon": "🌙", "color": "#1E293B", "socketGroup": "B" },
+  { "id": "flying", "name": "Flying", "icon": "🕊️", "color": "#38BDF8", "socketGroup": "B" },
+  { "id": "colorless", "name": "Colorless", "icon": "◇", "color": "#D1D5DB", "socketGroup": "chip", "isWild": true }
+]

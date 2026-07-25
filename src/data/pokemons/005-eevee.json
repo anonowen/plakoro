@@ -1,0 +1,31 @@
+{
+  "id": "005-eevee",
+  "name": "Eevee",
+  "image": "/images/pokemon/005-eevee.svg",
+  "expansion": "Starter Set",
+  "type": "colorless",
+  "weakness": "fighting",
+  "hp": 120,
+  "diceCount": 3,
+  "attacks": [
+    {
+      "id": "005-hane-mawaru",
+      "name": "Frolic",
+      "damage": 20,
+      "description": "Bounds around playfully before striking, its footing deciding the force of the blow.",
+      "energyCost": { "flying": 3 },
+      "characterDieOutcomes": [
+        { "poses": ["stand"], "damageBonus": 50, "effectText": "Deals 70 damage total." },
+        { "poses": ["lieLeft", "lieRight"], "damageBonus": 20, "effectText": "Deals 40 damage total." },
+        { "poses": ["faceUp", "faceDown", "upsideDown"], "damageBonus": 0 }
+      ]
+    },
+    {
+      "id": "005-bite",
+      "name": "Bite",
+      "damage": 20,
+      "description": "Bites the opponent with sharp fangs.",
+      "energyCost": { "colorless": 1 }
+    }
+  ]
+}
