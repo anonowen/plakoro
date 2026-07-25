@@ -12,7 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 export default function CalculatorPage() {
   const { id } = useParams<{ id: string }>();
   const pokemon = usePokemon(id);
-  const { loadout, setFaceEnergy, resetLoadout } = useDiceLoadout(id ?? "");
+  const { loadout, setFaceOption, flipChip, resetLoadout } = useDiceLoadout(id ?? "");
   const [attackId, setAttackId] = useState<string>(pokemon?.attacks[0]?.id ?? "");
 
   const selectedAttack = pokemon?.attacks.find((a) => a.id === attackId) ?? pokemon?.attacks[0];
@@ -61,7 +61,12 @@ export default function CalculatorPage() {
         </CardContent>
       </Card>
 
-      <DiceConfigForm dice={loadout.dice} onFaceChange={setFaceEnergy} onReset={resetLoadout} />
+      <DiceConfigForm
+        dice={loadout.dice}
+        onFaceOptionChange={setFaceOption}
+        onFlipChip={flipChip}
+        onReset={resetLoadout}
+      />
 
       {report && <ProbabilityResultPanel report={report} />}
     </div>

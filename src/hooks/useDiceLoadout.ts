@@ -47,11 +47,16 @@ export function useDiceLoadout(pokemonId: string) {
     localStorage.setItem(STORAGE_PREFIX + pokemonId, JSON.stringify(loadout));
   }, [pokemonId, loadout]);
 
-  const setFaceEnergy = useCallback(
-    (dieIndex: 0 | 1 | 2, slot: FaceSlot, energyTypeId: string) => {
+  const setFaceOption = useCallback(
+    (
+      dieIndex: 0 | 1 | 2,
+      slot: FaceSlot,
+      field: "energyTypeId" | "alternateEnergyTypeId",
+      energyTypeId: string
+    ) => {
       setLoadout((prev) => {
         const dice = prev.dice.map((die, i) =>
-          i === dieIndex ? setFace(die, slot, energyTypeId) : die
+          i === dieIndex ? updateFaceField(die, slot, field, energyTypeId) : die
         ) as [EnergyDieConfig, EnergyDieConfig, EnergyDieConfig];
         return { ...prev, dice };
       });
@@ -59,19 +64,46 @@ export function useDiceLoadout(pokemonId: string) {
     []
   );
 
+  /** Flips a dual (C-slot) chip so its other diagonal symbol faces up. */
+  const flipChip = useCallback((dieIndex: 0 | 1 | 2, slot: FaceSlot) => {
+    setLoadout((prev) => {
+      const dice = prev.dice.map((die, i) =>
+        i === dieIndex ? flipFace(die, slot) : die
+      ) as [EnergyDieConfig, EnergyDieConfig, EnergyDieConfig];
+      return { ...prev, dice };
+    });
+  }, []);
+
   const resetLoadout = useCallback(() => {
     setLoadout(createDefaultLoadout(pokemonId));
   }, [pokemonId]);
 
-  return { loadout, setFaceEnergy, resetLoadout };
+  return { loadout, setFaceOption, flipChip, resetLoadout };
 }
 
-function setFace(
+function updateFaceField(
   die: EnergyDieConfig,
   slot: FaceSlot,
+  field: "energyTypeId" | "alternateEnergyTypeId",
   energyTypeId: string
 ): EnergyDieConfig {
   return {
-    faces: die.faces.map((f) => (f.slot === slot ? { ...f, energyTypeId } : f)),
+    faces: die.faces.map((f) =>
+      f.slot === slot ? { ...f, [field]: energyTypeId } : f
+    ),
+  };
+}
+
+function flipFace(die: EnergyDieConfig, slot: FaceSlot): EnergyDieConfig {
+  return {
+    faces: die.faces.map((f) =>
+      f.slot === slot
+        ? {
+            ...f,
+            energyTypeId: f.alternateEnergyTypeId ?? f.energyTypeId,
+            alternateEnergyTypeId: f.energyTypeId,
+          }
+        : f
+    ),
   };
 }
