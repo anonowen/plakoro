@@ -98,60 +98,80 @@ export function enumerateEnergyRollOutcomes(
 
 /**
  * Determines whether a rolled energy count vector is enough to pay a
- * given cost. Payment succeeds if, for every required energy type, the
- * rolled amount (specific matches, topped up by Colorless/wild dice as
- * needed) is >= the required amount. Excess of one specific type never
- * transfers to another type — only Colorless is universally fungible.
+ * given cost, following standard TCG-style rules:
+ *   1. Each SPECIFIC required type (e.g. "2 Grass") must be met by rolled
+ *      energy of that exact type; any shortfall may be topped up by
+ *      Colorless/wild dice (which substitute for any specific type).
+ *   2. The "Colorless" portion of a cost (if any) is NOT restricted to
+ *      wild dice — it can be paid with ANY leftover energy of ANY type,
+ *      once every specific requirement above has been satisfied. This
+ *      matches how Colorless costs work in the physical game: excess
+ *      Fire, Water, etc. left over after paying specific costs is just
+ *      as good as excess Colorless for paying a Colorless requirement.
  */
 export function canPayCost(rolled: EnergyCost, cost: EnergyCost): boolean {
   const wildId = getWildEnergyType().id;
-  let remainingWild = rolled[wildId] ?? 0;
+  const remaining: EnergyCost = { ...rolled };
 
+  // Step 1 — satisfy every specific (non-Colorless) requirement using its
+  // own type first, then top up any shortfall using wild dice only.
   for (const [type, needed] of Object.entries(cost)) {
-    if (type === wildId) continue; // handled after specific types
-    const have = rolled[type] ?? 0;
-    if (have >= needed) continue;
-    const shortfall = needed - have;
-    if (remainingWild >= shortfall) {
-      remainingWild -= shortfall;
-    } else {
-      return false;
+    if (type === wildId) continue;
+    const have = remaining[type] ?? 0;
+    const used = Math.min(have, needed);
+    remaining[type] = have - used;
+
+    const shortfall = needed - used;
+    if (shortfall > 0) {
+      const wildHave = remaining[wildId] ?? 0;
+      const wildUsed = Math.min(wildHave, shortfall);
+      remaining[wildId] = wildHave - wildUsed;
+      if (wildUsed < shortfall) return false; // can't cover this specific type
     }
   }
 
-  const wildNeeded = cost[wildId] ?? 0;
-  if (wildNeeded > 0 && remainingWild < wildNeeded) return false;
+  // Step 2 — the Colorless portion of the cost can be paid with ANY
+  // leftover energy of ANY type (not just leftover wild dice).
+  const colorlessNeeded = cost[wildId] ?? 0;
+  if (colorlessNeeded > 0) {
+    const totalLeftover = Object.values(remaining).reduce((a, b) => a + b, 0);
+    if (totalLeftover < colorlessNeeded) return false;
+  }
 
   return true;
 }
 
 /**
  * Computes how many "energy units" of the cost a given roll actually
- * satisfies (specific matches + wild substitutions), capped at the total
- * cost. Used to compute the "expected successful energy" metric even for
- * partial/failed rolls.
+ * satisfies (specific matches + wild substitutions + any-leftover for
+ * Colorless), capped at the total cost. Used to compute the "expected
+ * successful energy" metric even for partial/failed rolls.
  */
 function usefulEnergyUnits(rolled: EnergyCost, cost: EnergyCost): number {
   const wildId = getWildEnergyType().id;
-  let remainingWild = rolled[wildId] ?? 0;
+  const remaining: EnergyCost = { ...rolled };
   let satisfied = 0;
 
   for (const [type, needed] of Object.entries(cost)) {
     if (type === wildId) continue;
-    const have = rolled[type] ?? 0;
+    const have = remaining[type] ?? 0;
     const direct = Math.min(have, needed);
     satisfied += direct;
+    remaining[type] = have - direct;
+
     const shortfall = needed - direct;
     if (shortfall > 0) {
-      const used = Math.min(remainingWild, shortfall);
+      const wildHave = remaining[wildId] ?? 0;
+      const used = Math.min(wildHave, shortfall);
       satisfied += used;
-      remainingWild -= used;
+      remaining[wildId] = wildHave - used;
     }
   }
 
-  const wildNeeded = cost[wildId] ?? 0;
-  if (wildNeeded > 0) {
-    satisfied += Math.min(remainingWild, wildNeeded);
+  const colorlessNeeded = cost[wildId] ?? 0;
+  if (colorlessNeeded > 0) {
+    const totalLeftover = Object.values(remaining).reduce((a, b) => a + b, 0);
+    satisfied += Math.min(totalLeftover, colorlessNeeded);
   }
 
   return satisfied;
