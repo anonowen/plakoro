@@ -1,13 +1,14 @@
-import { RotateCw } from "lucide-react";
+import { useState } from "react";
+import { RotateCw, X } from "lucide-react";
 import type { EnergyDieConfig, FaceSlot } from "@/types/dice";
 import { ALL_FACE_SLOTS, isDualSlot, slotSocketType } from "@/types/dice";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/utils/cn";
 import {
   getFaceAEnergyTypes,
   getFaceBEnergyTypes,
   getChipEnergyTypes,
+  tryGetEnergyType,
 } from "@/utils/energyRegistry";
 
 const SLOT_LABELS: Record<FaceSlot, string> = {
@@ -19,6 +20,17 @@ const SLOT_LABELS: Record<FaceSlot, string> = {
   D2: "Face D · chip 2",
 };
 
+/** Radial position of each face slot around the central die graphic,
+ *  mirroring the reference "click the die face" layout. */
+const SLOT_POSITION: Record<FaceSlot, string> = {
+  A: "col-start-2 row-start-1",
+  B: "col-start-2 row-start-3",
+  C1: "col-start-1 row-start-1",
+  C2: "col-start-3 row-start-1",
+  D1: "col-start-1 row-start-3",
+  D2: "col-start-3 row-start-3",
+};
+
 /** Energy types legally installable in a given face slot's socket. */
 function optionsForSlot(slot: FaceSlot) {
   const socket = slotSocketType(slot);
@@ -26,6 +38,8 @@ function optionsForSlot(slot: FaceSlot) {
   if (socket === "B") return getFaceBEnergyTypes();
   return getChipEnergyTypes(); // C and D sockets accept any energy type
 }
+
+type ActiveSide = "energyTypeId" | "alternateEnergyTypeId";
 
 interface DiceConfigFormProps {
   dice: EnergyDieConfig[];
@@ -45,124 +59,167 @@ export function DiceConfigForm({
   onFlipChip,
   onReset,
 }: DiceConfigFormProps) {
+  const [dieIndex, setDieIndex] = useState<0 | 1 | 2>(0);
+  const [activeSlot, setActiveSlot] = useState<FaceSlot | null>("A");
+  const [activeSide, setActiveSide] = useState<ActiveSide>("energyTypeId");
+
+  const die = dice[dieIndex];
+  const options = activeSlot ? optionsForSlot(activeSlot) : [];
+  const activeFace = activeSlot ? die.faces.find((f) => f.slot === activeSlot) : undefined;
+
+  function selectFace(slot: FaceSlot, side: ActiveSide = "energyTypeId") {
+    setActiveSlot(slot);
+    setActiveSide(side);
+  }
+
+  function pickElement(energyTypeId: string) {
+    if (!activeSlot) return;
+    onFaceOptionChange(dieIndex, activeSlot, activeSide, energyTypeId);
+  }
+
+  function clearFace(e: React.MouseEvent, slot: FaceSlot) {
+    e.stopPropagation();
+    onFaceOptionChange(dieIndex, slot, "energyTypeId", "");
+    onFaceOptionChange(dieIndex, slot, "alternateEnergyTypeId", "");
+  }
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
-          Build your 3 Energy Dice — sockets are universal, so any chip fits any
-          matching face type (A / B / C / D). Face C chips are dual-option: set
-          both sides, then flip to choose which one faces up.
+          Tap a face on the die, then pick its energy from the panel. Face C
+          chips are dual-option — tap the small back chip to set the other
+          side, or flip to swap which one is active.
         </p>
         <Button variant="outline" size="sm" onClick={onReset}>
           Reset
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        {dice.map((die, dieIndex) => (
-          <Card key={dieIndex}>
-            <CardHeader>
-              <CardTitle className="text-sm">Energy Die {dieIndex + 1}</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3 pt-0">
-              {ALL_FACE_SLOTS.map((slot) => {
-                const face = die.faces.find((f) => f.slot === slot);
-                const options = optionsForSlot(slot);
-
-                if (!isDualSlot(slot)) {
-                  // Face A, B, or D — a single fixed symbol.
-                  return (
-                    <label key={slot} className="flex flex-col gap-1 text-xs">
-                      <span className="text-muted-foreground">{SLOT_LABELS[slot]}</span>
-                      <Select
-                        value={face?.energyTypeId ?? ""}
-                        onChange={(e) =>
-                          onFaceOptionChange(
-                            dieIndex as 0 | 1 | 2,
-                            slot,
-                            "energyTypeId",
-                            e.target.value
-                          )
-                        }
-                      >
-                        <option value="">Empty</option>
-                        {options.map((opt) => (
-                          <option key={opt.id} value={opt.id}>
-                            {opt.icon} {opt.name}
-                          </option>
-                        ))}
-                      </Select>
-                    </label>
-                  );
-                }
-
-                // Face C — dual-option chip: 2 symbols, one facing up.
-                return (
-                  <div key={slot} className="flex flex-col gap-1 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">{SLOT_LABELS[slot]}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        title="Flip chip"
-                        onClick={() => onFlipChip(dieIndex as 0 | 1 | 2, slot)}
-                      >
-                        <RotateCw className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-
-                    <label className="flex flex-col gap-1">
-                      <span className="text-muted-foreground">
-                        Facing up (active)
-                      </span>
-                      <Select
-                        value={face?.energyTypeId ?? ""}
-                        onChange={(e) =>
-                          onFaceOptionChange(
-                            dieIndex as 0 | 1 | 2,
-                            slot,
-                            "energyTypeId",
-                            e.target.value
-                          )
-                        }
-                      >
-                        <option value="">Empty</option>
-                        {options.map((opt) => (
-                          <option key={opt.id} value={opt.id}>
-                            {opt.icon} {opt.name}
-                          </option>
-                        ))}
-                      </Select>
-                    </label>
-
-                    <label className="flex flex-col gap-1">
-                      <span className="text-muted-foreground">Other side</span>
-                      <Select
-                        value={face?.alternateEnergyTypeId ?? ""}
-                        onChange={(e) =>
-                          onFaceOptionChange(
-                            dieIndex as 0 | 1 | 2,
-                            slot,
-                            "alternateEnergyTypeId",
-                            e.target.value
-                          )
-                        }
-                      >
-                        <option value="">Empty</option>
-                        {options.map((opt) => (
-                          <option key={opt.id} value={opt.id}>
-                            {opt.icon} {opt.name}
-                          </option>
-                        ))}
-                      </Select>
-                    </label>
-                  </div>
-                );
-              })}
-            </CardContent>
-          </Card>
+      <div className="flex gap-2">
+        {([0, 1, 2] as const).map((i) => (
+          <Button
+            key={i}
+            variant={dieIndex === i ? "default" : "outline"}
+            size="sm"
+            onClick={() => setDieIndex(i)}
+          >
+            Energy Dice {i + 1}
+          </Button>
         ))}
+      </div>
+
+      <div className="grid gap-6 rounded-2xl border border-border bg-card p-4 sm:grid-cols-[auto_1fr] sm:p-6">
+        {/* Radial die diagram */}
+        <div className="grid grid-cols-3 grid-rows-3 place-items-center gap-3 justify-self-center">
+          <div className="col-start-2 row-start-2 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted text-3xl">
+            🎲
+          </div>
+          {ALL_FACE_SLOTS.map((slot) => {
+            const face = die.faces.find((f) => f.slot === slot);
+            const primary = tryGetEnergyType(face?.energyTypeId ?? "");
+            const alternate = tryGetEnergyType(face?.alternateEnergyTypeId ?? "");
+            const dual = isDualSlot(slot);
+            const isActive = activeSlot === slot;
+
+            return (
+              <div key={slot} className={cn("relative", SLOT_POSITION[slot])}>
+                <button
+                  type="button"
+                  title={SLOT_LABELS[slot]}
+                  onClick={() => selectFace(slot, "energyTypeId")}
+                  className={cn(
+                    "flex h-14 w-14 items-center justify-center rounded-xl border-2 text-2xl transition-transform hover:scale-105",
+                    isActive && activeSide === "energyTypeId"
+                      ? "border-primary ring-2 ring-primary/40"
+                      : "border-border"
+                  )}
+                  style={{
+                    backgroundColor: primary ? `${primary.color}22` : undefined,
+                  }}
+                >
+                  {primary ? primary.icon : "＋"}
+                </button>
+
+                {primary && (
+                  <button
+                    type="button"
+                    title="Clear this face"
+                    onClick={(e) => clearFace(e, slot)}
+                    className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+
+                {dual && (
+                  <div className="absolute -bottom-2 -right-2 flex items-center gap-0.5">
+                    <button
+                      type="button"
+                      title="Other side of this chip"
+                      onClick={() => selectFace(slot, "alternateEnergyTypeId")}
+                      className={cn(
+                        "flex h-6 w-6 items-center justify-center rounded-md border text-sm",
+                        isActive && activeSide === "alternateEnergyTypeId"
+                          ? "border-primary ring-2 ring-primary/40"
+                          : "border-border bg-background"
+                      )}
+                      style={{
+                        backgroundColor: alternate ? `${alternate.color}22` : undefined,
+                      }}
+                    >
+                      {alternate ? alternate.icon : "＋"}
+                    </button>
+                    <button
+                      type="button"
+                      title="Flip chip"
+                      onClick={() => onFlipChip(dieIndex, slot)}
+                      className="flex h-6 w-6 items-center justify-center rounded-md border border-border bg-background"
+                    >
+                      <RotateCw className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Element picker panel */}
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium">
+            {activeSlot
+              ? `${SLOT_LABELS[activeSlot]} — ${
+                  activeSide === "alternateEnergyTypeId" ? "other side" : "facing up"
+                }`
+              : "Select a face to edit"}
+          </p>
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
+            {options.map((opt) => {
+              const selected =
+                activeFace &&
+                (activeSide === "alternateEnergyTypeId"
+                  ? activeFace.alternateEnergyTypeId
+                  : activeFace.energyTypeId) === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  disabled={!activeSlot}
+                  onClick={() => pickElement(opt.id)}
+                  title={opt.name}
+                  className={cn(
+                    "flex aspect-square items-center justify-center rounded-xl border-2 text-2xl transition-transform hover:scale-105 disabled:opacity-40",
+                    selected ? "border-primary ring-2 ring-primary/40" : "border-border"
+                  )}
+                  style={{ backgroundColor: `${opt.color}18` }}
+                >
+                  {opt.icon}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );
