@@ -111,7 +111,7 @@ export function DiceConfigForm({
 
       <div className="grid gap-6 rounded-2xl border border-border bg-card p-4 sm:grid-cols-[auto_1fr] sm:p-6">
         {/* Radial die diagram */}
-        <div className="grid grid-cols-3 grid-rows-3 place-items-center gap-3 justify-self-center">
+        <div className="grid grid-cols-3 grid-rows-3 place-items-center gap-x-6 gap-y-3 justify-self-center">
           <div className="col-start-2 row-start-2 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted text-3xl">
             🎲
           </div>
@@ -123,37 +123,46 @@ export function DiceConfigForm({
             const isActive = activeSlot === slot;
 
             return (
-              <div key={slot} className={cn("relative", SLOT_POSITION[slot])}>
-                <button
-                  type="button"
-                  title={SLOT_LABELS[slot]}
-                  onClick={() => selectFace(slot, "energyTypeId")}
-                  className={cn(
-                    "flex h-14 w-14 items-center justify-center rounded-xl border-2 text-2xl transition-transform hover:scale-105",
-                    isActive && activeSide === "energyTypeId"
-                      ? "border-primary ring-2 ring-primary/40"
-                      : "border-border"
-                  )}
-                  style={{
-                    backgroundColor: primary ? `${primary.color}22` : undefined,
-                  }}
-                >
-                  {primary ? primary.icon : "＋"}
-                </button>
-
-                {primary && (
+              <div
+                key={slot}
+                className={cn("flex flex-col items-center gap-1", SLOT_POSITION[slot])}
+              >
+                <div className="relative">
                   <button
                     type="button"
-                    title="Clear this face"
-                    onClick={(e) => clearFace(e, slot)}
-                    className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground"
+                    title={SLOT_LABELS[slot]}
+                    onClick={() => selectFace(slot, "energyTypeId")}
+                    className={cn(
+                      "flex h-14 w-14 items-center justify-center rounded-xl border-2 text-2xl transition-transform hover:scale-105",
+                      isActive && activeSide === "energyTypeId"
+                        ? "border-primary ring-2 ring-primary/40"
+                        : "border-border"
+                    )}
+                    style={{
+                      backgroundColor: primary ? `${primary.color}22` : undefined,
+                    }}
                   >
-                    <X className="h-3 w-3" />
+                    {primary ? primary.icon : "＋"}
                   </button>
-                )}
+
+                  {primary && (
+                    <button
+                      type="button"
+                      title="Clear this face"
+                      onClick={(e) => clearFace(e, slot)}
+                      className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+
+                <span className="text-[10px] font-medium text-muted-foreground">
+                  {slot}
+                </span>
 
                 {dual && (
-                  <div className="absolute -bottom-2 -right-2 flex items-center gap-0.5">
+                  <div className="flex items-center gap-1">
                     <button
                       type="button"
                       title="Other side of this chip"
