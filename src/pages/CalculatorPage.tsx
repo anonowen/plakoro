@@ -20,7 +20,7 @@ import { suggestLoadoutForAttack } from "@/utils/optimizeLoadout";
 export default function CalculatorPage() {
   const { id } = useParams<{ id: string }>();
   const pokemon = usePokemon(id);
-  const { loadout, setFaceOption, flipChip, setAllDice, resetLoadout } = useDiceLoadout(
+  const { loadout, setFaceOption, setAllDice, resetLoadout } = useDiceLoadout(
     id ?? ""
   );
   const [attackId, setAttackId] = useState<string>(pokemon?.attacks[0]?.id ?? "");
@@ -170,7 +170,6 @@ export default function CalculatorPage() {
       <DiceConfigForm
         dice={loadout.dice}
         onFaceOptionChange={setFaceOption}
-        onFlipChip={flipChip}
         onReset={resetLoadout}
       />
 

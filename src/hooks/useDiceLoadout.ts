@@ -51,7 +51,7 @@ export function useDiceLoadout(pokemonId: string) {
     (
       dieIndex: 0 | 1 | 2,
       slot: FaceSlot,
-      field: "energyTypeId" | "alternateEnergyTypeId",
+      field: "energyTypeId" | "secondaryEnergyTypeId",
       energyTypeId: string
     ) => {
       setLoadout((prev) => {
@@ -63,16 +63,6 @@ export function useDiceLoadout(pokemonId: string) {
     },
     []
   );
-
-  /** Flips a dual (C-slot) chip so its other diagonal symbol faces up. */
-  const flipChip = useCallback((dieIndex: 0 | 1 | 2, slot: FaceSlot) => {
-    setLoadout((prev) => {
-      const dice = prev.dice.map((die, i) =>
-        i === dieIndex ? flipFace(die, slot) : die
-      ) as [EnergyDieConfig, EnergyDieConfig, EnergyDieConfig];
-      return { ...prev, dice };
-    });
-  }, []);
 
   /** Replaces all 3 dice at once — used by Import, Share-link loading, and
    *  the auto-optimize suggestion feature. */
@@ -87,32 +77,18 @@ export function useDiceLoadout(pokemonId: string) {
     setLoadout(createDefaultLoadout(pokemonId));
   }, [pokemonId]);
 
-  return { loadout, setFaceOption, flipChip, setAllDice, resetLoadout };
+  return { loadout, setFaceOption, setAllDice, resetLoadout };
 }
 
 function updateFaceField(
   die: EnergyDieConfig,
   slot: FaceSlot,
-  field: "energyTypeId" | "alternateEnergyTypeId",
+  field: "energyTypeId" | "secondaryEnergyTypeId",
   energyTypeId: string
 ): EnergyDieConfig {
   return {
     faces: die.faces.map((f) =>
       f.slot === slot ? { ...f, [field]: energyTypeId } : f
-    ),
-  };
-}
-
-function flipFace(die: EnergyDieConfig, slot: FaceSlot): EnergyDieConfig {
-  return {
-    faces: die.faces.map((f) =>
-      f.slot === slot
-        ? {
-            ...f,
-            energyTypeId: f.alternateEnergyTypeId ?? f.energyTypeId,
-            alternateEnergyTypeId: f.energyTypeId,
-          }
-        : f
     ),
   };
 }

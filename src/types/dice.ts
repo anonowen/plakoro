@@ -31,16 +31,17 @@ export function isDualSlot(slot: FaceSlot): boolean {
 
 /**
  * A single face's assigned energy.
- * - For A, B, and D faces: only `energyTypeId` is used.
- * - For C faces (dual-option chips): `energyTypeId` is the side currently
- *   facing up (used in rolls/calculations), and `alternateEnergyTypeId`
- *   is the other diagonal symbol on the same physical chip — kept so the
- *   player can flip the chip later without losing track of it.
+ * - For A, B, and D faces: only `energyTypeId` is used (1 energy unit).
+ * - For C faces (dual-option chips): the physical chip is printed with 2
+ *   energy symbols. When this face is rolled, BOTH `energyTypeId` and
+ *   `secondaryEnergyTypeId` are granted simultaneously (2 energy units
+ *   from a single face) — there is no "active side"; the chip always
+ *   gives both of its energies at once.
  */
 export interface EnergyDieFace {
   slot: FaceSlot;
   energyTypeId: EnergyTypeId;
-  alternateEnergyTypeId?: EnergyTypeId;
+  secondaryEnergyTypeId?: EnergyTypeId;
 }
 
 /**

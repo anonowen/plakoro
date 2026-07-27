@@ -1,9 +1,10 @@
 import type { EnergyCost, EnergyTypeId } from "@/types/energy";
 import type {
   EnergyDieConfig,
+  EnergyDieFace,
   CharacterDiePose,
 } from "@/types/dice";
-import { ALL_CHARACTER_DIE_POSES } from "@/types/dice";
+import { ALL_CHARACTER_DIE_POSES, isDualSlot } from "@/types/dice";
 import type { CharacterDieOutcome, Attack } from "@/types/attack";
 import type {
   EnergyPaymentResult,
@@ -57,6 +58,20 @@ function addCount(counts: EnergyCost, energyTypeId: EnergyTypeId): EnergyCost {
 }
 
 /**
+ * Adds the energy contributed by a single rolled face. A face on a C
+ * (dual-option) slot grants BOTH of its energies at once — the physical
+ * chip shows two symbols and both count when that face lands. Every
+ * other face grants just its one `energyTypeId`.
+ */
+function addFaceCounts(counts: EnergyCost, face: EnergyDieFace): EnergyCost {
+  let result = addCount(counts, face.energyTypeId);
+  if (isDualSlot(face.slot) && face.secondaryEnergyTypeId) {
+    result = addCount(result, face.secondaryEnergyTypeId);
+  }
+  return result;
+}
+
+/**
  * Enumerates every possible energy-count outcome from rolling the given
  * Energy Dice together, with exact probabilities. Outcomes with identical
  * count vectors are merged (probabilities summed).
@@ -86,7 +101,7 @@ export function enumerateEnergyRollOutcomes(
     for (const face of faces) {
       recurse(
         dieIndex + 1,
-        addCount(countsSoFar, face.energyTypeId),
+        addFaceCounts(countsSoFar, face),
         probSoFar * faceProb
       );
     }

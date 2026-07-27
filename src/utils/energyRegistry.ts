@@ -62,10 +62,11 @@ export function getFaceBEnergyTypes(): EnergyTypeDefinition[] {
 }
 
 /**
- * All energy types that can be freely assigned to a C or D chip socket.
- * Per game rules, chips may hold ANY energy type (including Colorless),
- * not just the ones restricted to face groups A/B.
+ * All energy types that can be assigned to a C or D chip socket.
+ * Colorless is intentionally EXCLUDED here: it is a cost-side concept
+ * only (an attack's "any energy" requirement) and can never actually be
+ * rolled on a physical die face.
  */
 export function getChipEnergyTypes(): EnergyTypeDefinition[] {
-  return REGISTRY;
+  return REGISTRY.filter((e) => !e.isWild);
 }

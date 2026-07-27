@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RotateCw, X } from "lucide-react";
+import { X } from "lucide-react";
 import type { EnergyDieConfig, FaceSlot } from "@/types/dice";
 import { ALL_FACE_SLOTS, isDualSlot, slotSocketType } from "@/types/dice";
 import { Button } from "@/components/ui/button";
@@ -14,14 +14,13 @@ import {
 const SLOT_LABELS: Record<FaceSlot, string> = {
   A: "Face A (peg)",
   B: "Face B (hole)",
-  C1: "Face C · chip 1",
-  C2: "Face C · chip 2",
+  C1: "Face C · chip 1 (grants both energies)",
+  C2: "Face C · chip 2 (grants both energies)",
   D1: "Face D · chip 1",
   D2: "Face D · chip 2",
 };
 
-/** Radial position of each face slot around the central die graphic,
- *  mirroring the reference "click the die face" layout. */
+/** Radial position of each face slot around the central die graphic. */
 const SLOT_POSITION: Record<FaceSlot, string> = {
   A: "col-start-2 row-start-1",
   B: "col-start-2 row-start-3",
@@ -36,29 +35,23 @@ function optionsForSlot(slot: FaceSlot) {
   const socket = slotSocketType(slot);
   if (socket === "A") return getFaceAEnergyTypes();
   if (socket === "B") return getFaceBEnergyTypes();
-  return getChipEnergyTypes(); // C and D sockets accept any energy type
+  return getChipEnergyTypes(); // C and D sockets: any of the 9 elemental types
 }
 
-type ActiveSide = "energyTypeId" | "alternateEnergyTypeId";
+type ActiveSide = "energyTypeId" | "secondaryEnergyTypeId";
 
 interface DiceConfigFormProps {
   dice: EnergyDieConfig[];
   onFaceOptionChange: (
     dieIndex: 0 | 1 | 2,
     slot: FaceSlot,
-    field: "energyTypeId" | "alternateEnergyTypeId",
+    field: "energyTypeId" | "secondaryEnergyTypeId",
     energyTypeId: string
   ) => void;
-  onFlipChip: (dieIndex: 0 | 1 | 2, slot: FaceSlot) => void;
   onReset: () => void;
 }
 
-export function DiceConfigForm({
-  dice,
-  onFaceOptionChange,
-  onFlipChip,
-  onReset,
-}: DiceConfigFormProps) {
+export function DiceConfigForm({ dice, onFaceOptionChange, onReset }: DiceConfigFormProps) {
   const [dieIndex, setDieIndex] = useState<0 | 1 | 2>(0);
   const [activeSlot, setActiveSlot] = useState<FaceSlot | null>("A");
   const [activeSide, setActiveSide] = useState<ActiveSide>("energyTypeId");
@@ -80,7 +73,7 @@ export function DiceConfigForm({
   function clearFace(e: React.MouseEvent, slot: FaceSlot) {
     e.stopPropagation();
     onFaceOptionChange(dieIndex, slot, "energyTypeId", "");
-    onFaceOptionChange(dieIndex, slot, "alternateEnergyTypeId", "");
+    onFaceOptionChange(dieIndex, slot, "secondaryEnergyTypeId", "");
   }
 
   return (
@@ -88,8 +81,8 @@ export function DiceConfigForm({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
           Tap a face on the die, then pick its energy from the panel. Face C
-          chips are dual-option — tap the small back chip to set the other
-          side, or flip to swap which one is active.
+          chips grant <strong>both</strong> of their energies at once whenever
+          that face is rolled.
         </p>
         <Button variant="outline" size="sm" onClick={onReset}>
           Reset
@@ -118,7 +111,7 @@ export function DiceConfigForm({
           {ALL_FACE_SLOTS.map((slot) => {
             const face = die.faces.find((f) => f.slot === slot);
             const primary = tryGetEnergyType(face?.energyTypeId ?? "");
-            const alternate = tryGetEnergyType(face?.alternateEnergyTypeId ?? "");
+            const secondary = tryGetEnergyType(face?.secondaryEnergyTypeId ?? "");
             const dual = isDualSlot(slot);
             const isActive = activeSlot === slot;
 
@@ -162,32 +155,22 @@ export function DiceConfigForm({
                 </span>
 
                 {dual && (
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      title="Other side of this chip"
-                      onClick={() => selectFace(slot, "alternateEnergyTypeId")}
-                      className={cn(
-                        "flex h-6 w-6 items-center justify-center rounded-md border text-sm",
-                        isActive && activeSide === "alternateEnergyTypeId"
-                          ? "border-primary ring-2 ring-primary/40"
-                          : "border-border bg-background"
-                      )}
-                      style={{
-                        backgroundColor: alternate ? `${alternate.color}22` : undefined,
-                      }}
-                    >
-                      {alternate ? alternate.icon : "＋"}
-                    </button>
-                    <button
-                      type="button"
-                      title="Flip chip"
-                      onClick={() => onFlipChip(dieIndex, slot)}
-                      className="flex h-6 w-6 items-center justify-center rounded-md border border-border bg-background"
-                    >
-                      <RotateCw className="h-3 w-3" />
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    title="This chip's second energy (granted together with the first)"
+                    onClick={() => selectFace(slot, "secondaryEnergyTypeId")}
+                    className={cn(
+                      "flex h-6 w-6 items-center justify-center rounded-md border text-sm",
+                      isActive && activeSide === "secondaryEnergyTypeId"
+                        ? "border-primary ring-2 ring-primary/40"
+                        : "border-border bg-background"
+                    )}
+                    style={{
+                      backgroundColor: secondary ? `${secondary.color}22` : undefined,
+                    }}
+                  >
+                    {secondary ? secondary.icon : "＋"}
+                  </button>
                 )}
               </div>
             );
@@ -198,8 +181,8 @@ export function DiceConfigForm({
         <div className="flex flex-col gap-2">
           <p className="text-sm font-medium">
             {activeSlot
-              ? `${SLOT_LABELS[activeSlot]} — ${
-                  activeSide === "alternateEnergyTypeId" ? "other side" : "facing up"
+              ? `${SLOT_LABELS[activeSlot]}${
+                  activeSide === "secondaryEnergyTypeId" ? " — 2nd energy" : ""
                 }`
               : "Select a face to edit"}
           </p>
@@ -207,8 +190,8 @@ export function DiceConfigForm({
             {options.map((opt) => {
               const selected =
                 activeFace &&
-                (activeSide === "alternateEnergyTypeId"
-                  ? activeFace.alternateEnergyTypeId
+                (activeSide === "secondaryEnergyTypeId"
+                  ? activeFace.secondaryEnergyTypeId
                   : activeFace.energyTypeId) === opt.id;
               return (
                 <button
