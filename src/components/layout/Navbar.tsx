@@ -3,7 +3,10 @@ import { Dices } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { ThemeToggle } from "./ThemeToggle";
 
-const NAV_LINKS = [{ to: "/", label: "Pokédex" }];
+const NAV_LINKS = [
+  { to: "/", label: "Pokédex" },
+  { to: "/admin", label: "Admin" },
+];
 
 export function Navbar() {
   return (

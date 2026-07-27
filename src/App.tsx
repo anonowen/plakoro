@@ -4,6 +4,7 @@ import HomePage from "@/pages/HomePage";
 import PokemonDetailPage from "@/pages/PokemonDetailPage";
 import CalculatorPage from "@/pages/CalculatorPage";
 import SimulatorPage from "@/pages/SimulatorPage";
+import AdminPage from "@/pages/AdminPage";
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
           <Route path="/pokemon/:id" element={<PokemonDetailPage />} />
           <Route path="/pokemon/:id/calculator" element={<CalculatorPage />} />
           <Route path="/pokemon/:id/simulator" element={<SimulatorPage />} />
+          <Route path="/admin" element={<AdminPage />} />
         </Routes>
       </main>
     </div>
