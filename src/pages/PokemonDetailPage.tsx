@@ -2,6 +2,7 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Calculator, Dices, Heart } from "lucide-react";
 import { usePokemon } from "@/hooks/usePokemonData";
 import { AttackList } from "@/components/pokemon/AttackList";
+import { HpTracker } from "@/components/pokemon/HpTracker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getEnergyType } from "@/utils/energyRegistry";
@@ -74,6 +75,8 @@ export default function PokemonDetailPage() {
           </div>
         </div>
       </div>
+
+      <HpTracker pokemonId={pokemon.id} maxHp={pokemon.hp} />
 
       <div>
         <h2 className="mb-3 text-lg font-semibold">Attacks</h2>

@@ -74,11 +74,20 @@ export function useDiceLoadout(pokemonId: string) {
     });
   }, []);
 
+  /** Replaces all 3 dice at once — used by Import, Share-link loading, and
+   *  the auto-optimize suggestion feature. */
+  const setAllDice = useCallback(
+    (dice: [EnergyDieConfig, EnergyDieConfig, EnergyDieConfig]) => {
+      setLoadout((prev) => ({ ...prev, dice }));
+    },
+    []
+  );
+
   const resetLoadout = useCallback(() => {
     setLoadout(createDefaultLoadout(pokemonId));
   }, [pokemonId]);
 
-  return { loadout, setFaceOption, flipChip, resetLoadout };
+  return { loadout, setFaceOption, flipChip, setAllDice, resetLoadout };
 }
 
 function updateFaceField(
