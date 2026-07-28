@@ -1,0 +1,33 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    // Every signed-in user gets exactly one profile doc, created on
+    // first sign-in by the app itself. Users may read their own profile;
+    // nobody (including the owner) may write `role` from the client —
+    // promoting to admin is done manually in the Firebase console only.
+    match /users/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow create: if isSignedIn() && request.auth.uid == uid
+        && request.resource.data.role == "user";
+      allow update, delete: if false;
+    }
+
+    // Pokémon data: publicly readable (no login required to browse/
+    // calculate), writable only by admins.
+    match /pokemons/{pokemonId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

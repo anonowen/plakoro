@@ -1,14 +1,18 @@
 import { NavLink } from "react-router-dom";
 import { Dices } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { useAuth } from "@/contexts/AuthContext";
 import { ThemeToggle } from "./ThemeToggle";
-
-const NAV_LINKS = [
-  { to: "/", label: "Pokédex" },
-  { to: "/admin", label: "Admin" },
-];
+import { SignInButton } from "@/components/auth/SignInButton";
 
 export function Navbar() {
+  const { isAdmin } = useAuth();
+
+  const navLinks = [
+    { to: "/", label: "Pokédex" },
+    ...(isAdmin ? [{ to: "/admin", label: "Admin" }] : []),
+  ];
+
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
@@ -19,7 +23,7 @@ export function Navbar() {
         </NavLink>
 
         <nav className="flex items-center gap-1">
-          {NAV_LINKS.map((link) => (
+          {navLinks.map((link) => (
             <NavLink
               key={link.to}
               to={link.to}
@@ -37,6 +41,7 @@ export function Navbar() {
             </NavLink>
           ))}
           <ThemeToggle />
+          <SignInButton />
         </nav>
       </div>
     </header>
