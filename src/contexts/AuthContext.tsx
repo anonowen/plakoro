@@ -59,8 +59,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
-        const p = await ensureUserProfile(firebaseUser);
-        setProfile(p);
+        try {
+          const p = await ensureUserProfile(firebaseUser);
+          setProfile(p);
+        } catch (err) {
+          // Firestore might not be set up yet, offline, or rules may
+          // reject the write — never let this leave the UI stuck on a
+          // permanent loading state. The user is still considered
+          // signed in (Firebase Auth succeeded); they just won't have
+          // a role/profile until Firestore is reachable.
+          console.error("Failed to load/create user profile:", err);
+          setProfile(null);
+        }
       } else {
         setProfile(null);
       }
